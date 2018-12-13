@@ -15,8 +15,9 @@
 """
 
 def _jarjar_library(ctx):
+    _rules_file = ctx.actions.declare_file('jarjar.rules')
     ctx.actions.write(
-        output = ctx.outputs._rules_file,
+        output = _rules_file,
         content = "\n".join(ctx.attr.rules),
     )
 
@@ -58,7 +59,7 @@ def _jarjar_library(ctx):
         jars = " ".join([jar.path for jar in jar_files]),
         java_home = str(ctx.attr._jdk[java_common.JavaRuntimeInfo].java_home),
         jarjar = ctx.executable._jarjar.path,
-        rules_file = ctx.outputs._rules_file.path,
+        rules_file = _rules_file.path,
         outfile = ctx.outputs.jar.path,
     )
 
@@ -66,10 +67,12 @@ def _jarjar_library(ctx):
         command = command,
         inputs = [
             ctx.executable._jarjar,
-            ctx.outputs._rules_file,
+            _rules_file,
         ] + jar_files + ctx.files._jdk,
         outputs = [ctx.outputs.jar],
     )
+
+    return [JavaInfo(ctx.outputs.jar, ctx.outputs.jar)]
 
 jarjar_library = rule(
     attrs = {
@@ -89,7 +92,6 @@ jarjar_library = rule(
     },
     outputs = {
         "jar": "%{name}.jar",
-        "_rules_file": "%{name}.jarjar_rules",
     },
     implementation = _jarjar_library,
 )
