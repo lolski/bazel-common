@@ -72,13 +72,19 @@ def _jarjar_library(ctx):
         outputs = [ctx.outputs.jar],
     )
 
-    return [JavaInfo(ctx.outputs.jar, ctx.outputs.jar)]
+    return [JavaInfo(
+        output_jar=ctx.outputs.jar,
+        compile_jar=ctx.outputs.jar,
+        deps=[x[JavaInfo] for x in ctx.attr.deps])]
 
 jarjar_library = rule(
     attrs = {
         "rules": attr.string_list(),
         "jars": attr.label_list(
             allow_files = [".jar"],
+        ),
+        "deps": attr.label_list(
+            providers = [JavaInfo]
         ),
         "_jarjar": attr.label(
             default = Label("//tools/jarjar"),
